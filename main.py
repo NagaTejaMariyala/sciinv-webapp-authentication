@@ -82,6 +82,7 @@ def adminIndex():
             # login admin by username
             admins = Admin().query.filter_by(username=username).first()
             if admins and bcrypt.check_password_hash(admins.password, password):
+                # if admins:
                 session["admin_id"] = admins.id
                 session["admin_name"] = admins.username
                 flash("Login Successfully", "success")
@@ -194,6 +195,7 @@ def userIndex():
             else:
                 session["user_id"] = users.id
                 session["username"] = users.username
+                session["user_email"] = users.email
                 flash("Login Successfully", "success")
                 return redirect("/user/dashboard")
         else:
