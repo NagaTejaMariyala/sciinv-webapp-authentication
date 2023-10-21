@@ -125,6 +125,7 @@ def adminGetAllUser():
         return render_template("admin/all-user.html", title="Approve User", users=users)
 
 
+# admin approve user
 @app.route("/admin/approve-user/<int:id>")
 def adminApprove(id):
     if not session.get("admin_id"):
@@ -135,10 +136,23 @@ def adminApprove(id):
     return redirect("/admin/get-all-user")
 
 
+# admin disapprove user
+@app.route("/admin/disapprove-user/<int:id>")
+def adminDisapprove(id):
+    if not session.get("admin_id"):
+        return redirect("/admin/")
+    User().query.filter_by(id=id).update(dict(status=0))
+    db.session.commit()
+    flash("User no longer has access!", "success")
+    return redirect("/admin/get-all-user")
+
+
 # change admin password
 @app.route("/admin/change-admin-password", methods=["POST", "GET"])
 def adminChangePassword():
     admin = Admin.query.get(1)
+    # print(admin)
+    print(session.get("admin_id"))
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -146,9 +160,9 @@ def adminChangePassword():
             flash("Please fill the field", "danger")
             return redirect("/admin/change-admin-password")
         else:
-            Admin().query.filter_by(username=username).update(
-                dict(password=bcrypt.generate_password_hash(password, 10))
-            )
+            id = session.get("admin_id")
+            hash_password = bcrypt.generate_password_hash(password, 10)
+            Admin.query.filter_by(id=id).update(dict(password=hash_password))
             db.session.commit()
             flash("Admin Password update successfully", "success")
             return redirect("/admin/change-admin-password")
@@ -275,6 +289,7 @@ def userLogout():
     if session.get("user_id"):
         session["user_id"] = None
         session["username"] = None
+        session["user_email"] = None
         return redirect("/user/")
 
 
@@ -288,13 +303,16 @@ def userChangePassword():
         if email == "" or password == "":
             flash("Please fill the field", "danger")
             return redirect("/user/change-password")
+        elif email != session["user_email"]:
+            flash("Enter valid email", "danger")
+            return redirect("/user/change-password")
         else:
             users = User.query.filter_by(email=email).first()
             if users:
                 hash_password = bcrypt.generate_password_hash(password, 10)
                 User.query.filter_by(email=email).update(dict(password=hash_password))
                 db.session.commit()
-                flash("Password Change Successfully", "success")
+                flash("Password Changed Successfully", "success")
                 return redirect("/user/change-password")
             else:
                 flash("Invalid Email", "danger")
