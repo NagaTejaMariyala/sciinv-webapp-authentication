@@ -278,7 +278,6 @@ def userLogout():
         return redirect("/user/")
 
 
-# user change password
 @app.route("/user/change-password", methods=["POST", "GET"])
 def userChangePassword():
     if not session.get("user_id"):
@@ -288,9 +287,6 @@ def userChangePassword():
         password = request.form.get("password")
         if email == "" or password == "":
             flash("Please fill the field", "danger")
-            return redirect("/user/change-password")
-        elif email != session["user_email"]:
-            flash("Email mismatch", "danger")
             return redirect("/user/change-password")
         else:
             users = User.query.filter_by(email=email).first()
@@ -329,7 +325,14 @@ def userUpdateProfile():
         else:
             session["username"] = None
             User.query.filter_by(id=id).update(
-                dict(fname=fname, lname=lname, email=email, edu=edu, username=username)
+                dict(
+                    fname=fname,
+                    lname=lname,
+                    # email=email,
+                    email=session["user_email"],
+                    edu=edu,
+                    username=username,
+                )
             )
             db.session.commit()
             session["username"] = username
