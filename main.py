@@ -247,7 +247,7 @@ def userSignup():
                 db.session.add(user)
                 db.session.commit()
                 flash(
-                    "Account Create Successfully Admin Will approve your account in 10 to 30 mint ",
+                    "Account Create Successfully! Contact admin for approval",
                     "success",
                 )
                 return redirect("/user/")
